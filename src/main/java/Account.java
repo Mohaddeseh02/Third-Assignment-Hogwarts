@@ -1,24 +1,121 @@
+import java.security.NoSuchAlgorithmException;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class Account {
-    private String username;
-    // TODO: Passwords should hashed
-    private String password;
-    private UUID accountID;
+public class Account implements AccountManagement
+{
+    Scanner scanner = new Scanner (System.in);
 
-    @Override
-    public boolean validatePassword(String enteredPassword) {
-        //TODO
-        return false;
+    static String skipLine = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+
+    protected String userName;
+    protected String owlmail;
+    protected String password;
+    protected String fullName;
+    protected UUID   accountID;
+
+    protected static ArrayList <String> UserNames = new ArrayList <> ();
+    protected static ArrayList <String> Passwords = new ArrayList <> ();
+
+    public int SignIn (String userName, String password)
+    {
+        String[] allUsers = new String[UserNames.size ()];
+        UserNames.toArray (allUsers);
+        String[] allWords = new String[Passwords.size ()];
+        Passwords.toArray (allWords);
+
+        for (int i = 0; i < allUsers.length; i++)
+        {
+            if (userName.equals (allUsers[i]))
+            {
+                if (password.equals (allWords[i]))
+                {
+                    return 1; //username was found and password is correct. operation succeeded
+                }
+                else
+                {
+                    return 2; //username was found but password is incorrect. operation failed
+                }
+            }
+        }
+        return 0; //username was not found. operation failed
     }
 
-    @Override
+    public static byte[] generateSalt ()
+    {
+        byte[] salt = new byte[16];
+        SecureRandom random = new SecureRandom ();
+        random.nextBytes (salt);
+        return salt;
+    }
+
+    public static String hashPassword (String password, byte[] salt)
+    {
+        try
+        {
+            MessageDigest messageDigest = MessageDigest.getInstance ("SHA-256");
+            messageDigest.reset ();
+            messageDigest.update (salt);
+            byte[] hashedBytes = messageDigest.digest (password.getBytes ());
+
+            StringBuilder stringBuilder = new StringBuilder ();
+            for (byte b : hashedBytes)
+            {
+                stringBuilder.append (String.format ("%02x", b));
+            }
+            return stringBuilder.toString ();
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace ();
+            return null;
+        }
+    }
+
+    public static int validatePassword (String firstPassword, String secondPassword)
+    {
+        if (! firstPassword.equals (secondPassword))
+        {
+            return 2;
+        }
+
+        String regex = "^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$";
+
+        Pattern pattern = Pattern.compile (regex);
+        Matcher matcher = pattern.matcher (firstPassword);
+
+        if (matcher.find ())
+        {
+            return 0;
+        }
+        return 1;
+    }
+
+    public boolean validatePassword(String enteredPassword)
+    {
+        return true;
+    }
+
     public void changeUsername(String newUsername) {
-        //TODO
+
     }
 
-    @Override
     public void changePassword(String newPassword) {
-        //TODO
+
+    }
+
+    public void changeUsername (Account account)
+    {
+        return;
+    }
+
+    public void changePassword (Account account)
+    {
+        return;
     }
 }
